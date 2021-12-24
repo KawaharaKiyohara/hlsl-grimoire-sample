@@ -58,6 +58,7 @@ cbuffer CBBlur : register(b1)
 {
     float4 weight[2]; // 重み
 }
+
 /*!
  * @brief 横ブラー頂点シェーダー
  */
@@ -65,6 +66,7 @@ PS_BlurInput VSXBlur(VSInput In)
 {
     // step-13 横ブラー用の頂点シェーダーを実装
     PS_BlurInput Out;
+
     // 座標変換
     Out.pos = mul(mvp, In.pos);
 
@@ -72,23 +74,31 @@ PS_BlurInput VSXBlur(VSInput In)
     float2 texSize;
     float level;
     sceneTexture.GetDimensions(0, texSize.x, texSize.y, level);
+
     // 基準テクセルのUV座標を記録
     float2 tex = In.uv;
 
     // 基準テクセルからU座標を+1テクセルずらすためのオフセットを計算する
     Out.tex0.xy = float2(1.0f / texSize.x, 0.0f);
+
     // 基準テクセルからU座標を+3テクセルずらすためのオフセットを計算する
     Out.tex1.xy = float2(3.0f / texSize.x, 0.0f);
+
     // 基準テクセルからU座標を+5テクセルずらすためのオフセットを計算する
     Out.tex2.xy = float2(5.0f / texSize.x, 0.0f);
+
     // 基準テクセルからU座標を+7テクセルずらすためのオフセットを計算する
     Out.tex3.xy = float2(7.0f / texSize.x, 0.0f);
+
     // 基準テクセルからU座標を+9テクセルずらすためのオフセットを計算する
     Out.tex4.xy = float2(9.0f / texSize.x, 0.0f);
+
     // 基準テクセルからU座標を+11テクセルずらすためのオフセットを計算する
     Out.tex5.xy = float2(11.0f / texSize.x, 0.0f);
+
     // 基準テクセルからU座標を+13テクセルずらすためのオフセットを計算する
     Out.tex6.xy = float2(13.0f / texSize.x, 0.0f);
+
     // 基準テクセルからU座標を+15テクセルずらすためのオフセットを計算する
     Out.tex7.xy = float2(15.0f / texSize.x, 0.0f);
 
@@ -122,7 +132,9 @@ PS_BlurInput VSXBlur(VSInput In)
 PS_BlurInput VSYBlur(VSInput In)
 {
     // step-14 Yブラー用の頂点シェーダーを実装
+
     PS_BlurInput Out;
+
     // 座標変換
     Out.pos = mul(mvp, In.pos);
 
@@ -136,18 +148,25 @@ PS_BlurInput VSYBlur(VSInput In)
 
     // 基準テクセルからV座標を+1テクセルずらすためのオフセットを計算する
     Out.tex0.xy = float2(0.0f, 1.0f / texSize.y);
+
     // 基準テクセルからV座標を+3テクセルずらすためのオフセットを計算する
     Out.tex1.xy = float2(0.0f, 3.0f / texSize.y);
+
     // 基準テクセルからV座標を+5テクセルずらすためのオフセットを計算する
     Out.tex2.xy = float2(0.0f, 5.0f / texSize.y);
+
     // 基準テクセルからV座標を+7テクセルずらすためのオフセットを計算する
     Out.tex3.xy = float2(0.0f, 7.0f / texSize.y);
+
     // 基準テクセルからV座標を+9テクセルずらすためのオフセットを計算する
     Out.tex4.xy = float2(0.0f, 9.0f / texSize.y);
+
     // 基準テクセルからV座標を+11テクセルずらすためのオフセットを計算する
     Out.tex5.xy = float2(0.0f, 11.0f / texSize.y);
+
     // 基準テクセルからV座標を+13テクセルずらすためのオフセットを計算する
     Out.tex6.xy = float2(0.0f, 13.0f / texSize.y);
+
     // 基準テクセルからV座標を+15テクセルずらすためのオフセットを計算する
     Out.tex7.xy = float2(0.0f, 15.0f / texSize.y);
 
@@ -181,6 +200,7 @@ float4 PSBlur(PS_BlurInput In) : SV_Target0
 {
     // step-15 X,Yブラー用のピクセルシェーダーを実装
     float4 Color;
+
     // 基準テクセルからプラス方向に8テクセル、重み付きでサンプリング
     Color  = weight[0].x * sceneTexture.Sample(Sampler, In.tex0.xy);
     Color += weight[0].y * sceneTexture.Sample(Sampler, In.tex1.xy);

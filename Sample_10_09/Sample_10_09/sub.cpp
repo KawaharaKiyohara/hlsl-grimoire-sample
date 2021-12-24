@@ -25,135 +25,100 @@ void InitMainDepthRenderTarget(RenderTarget& mainRenderTarget, RenderTarget& dep
         clearColor
     );
 }
-void InitCombimeBokeImageToSprite(Sprite& combineBokeImageSprite, Texture& bokeTexture, Texture& depthTexture)
+// ルートシグネチャの初期化
+void InitRootSignature(RootSignature& rs)
 {
-    SpriteInitData combineBokeImageSpriteInitData;
-    //使用するテクスチャは２枚。
-    combineBokeImageSpriteInitData.m_textures[0] = &bokeTexture;
-    combineBokeImageSpriteInitData.m_textures[1] = &depthTexture;
-    combineBokeImageSpriteInitData.m_width = 1280;
-    combineBokeImageSpriteInitData.m_height = 720;
-    combineBokeImageSpriteInitData.m_fxFilePath = "Assets/shader/preset/samplePostEffect.fx";
-    combineBokeImageSpriteInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    // 距離を利用してボケ画像をアルファブレンディングするので、半透明合成モードにする。
-    combineBokeImageSpriteInitData.m_alphaBlendMode = AlphaBlendMode_Trans;
-    // 初期化オブジェクトを利用してスプライトを初期化する。
-   
-    combineBokeImageSprite.Init(combineBokeImageSpriteInitData);
+    rs.Init(D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 }
-void InitCopyToFrameBufferTargetSprite(Sprite& copyToFrameBufferSprite, Texture& srcTexture)
+/// <summary>
+/// 背景モデルを初期化。
+/// </summary>
+void InitBackgourndModel(Model& model, Model& shadowCasterModel, Light& light, ShadowMap& shadowMap)
 {
-    SpriteInitData spriteInitData;
-    // テクスチャはyBlurRenderTargetのカラーバッファー
-    spriteInitData.m_textures[0] = &srcTexture;
-    // レンダリング先がフレームバッファーなので、解像度はフレームバッファーと同じ
-    spriteInitData.m_width = 1280;
-    spriteInitData.m_height = 720;
-    // ボケ画像をそのまま貼り付けるだけなので、通常の2D描画のシェーダーを指定する
-    spriteInitData.m_fxFilePath = "Assets/shader/preset/sample2D.fx";
-    spriteInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // 初期化オブジェクトを使って、スプライトを初期化する
-    copyToFrameBufferSprite.Init(spriteInitData);
-}
-void InitBGModel(Model& model, Light& light)
-{
-    //光を強めに設定する。
-    light.directionalLight[0].color.x = 2.0f;
-    light.directionalLight[0].color.y = 2.0f;
-    light.directionalLight[0].color.z = 2.0f;
+    {
+        // モデルの初期化情報を設定する
+        ModelInitData initData;
+        // tkmファイルを指定する
+        initData.m_tkmFilePath = "Assets/modelData/bg/bg.tkm";
+        // シェーダーファイルを指定する
+        initData.m_fxFilePath = "Assets/shader/preset/model.fx";
+        // ユーザー拡張の定数バッファーに送るデータを指定する
+        initData.m_expandConstantBuffer = &light;
+        // ユーザー拡張の定数バッファーに送るデータのサイズを指定する
+        initData.m_expandConstantBufferSize = sizeof(light);
+        // レンダリングするカラーバッファーのフォーマットを指定する
+        initData.m_colorBufferFormat[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        // 拡張シェーダーリソースとして、シャドウマップを渡す。
+        initData.m_expandShaderResoruceView[0] = &shadowMap.GetShadowMap();
 
-    light.directionalLight[0].direction.x = 0.0f;
-    light.directionalLight[0].direction.y = 0.0f;
-    light.directionalLight[0].direction.z = -1.0f;
-    light.directionalLight[0].direction.Normalize();
+        // 設定した初期化情報をもとにモデルを初期化する
+        model.Init(initData);
+    }
+    {
+        // 続いてシャドウキャスター
+        ModelInitData initData;
+        initData.m_tkmFilePath = "Assets/modelData/bg/bg.tkm";
+        // シェーダーファイルを指定する
+        initData.m_fxFilePath = "Assets/shader/preset/shadowCaster.fx";
+        // レンダリングするカラーバッファーのフォーマットを指定する
+        initData.m_colorBufferFormat[0] = DXGI_FORMAT_R32_FLOAT;
+        // 設定した初期化情報をもとにモデルを初期化する
+        shadowCasterModel.Init(initData);
 
-    light.ambinetLight.x = 0.5f;
-    light.ambinetLight.y = 0.5f;
-    light.ambinetLight.z = 0.5f;
-
-    light.eyePos = g_camera3D->GetPosition();
-
-    ModelInitData modelInitData;
-    modelInitData.m_tkmFilePath = "Assets/modelData/bg/bg.tkm";
-    modelInitData.m_fxFilePath = "Assets/shader/preset/sample3D.fx";
-    modelInitData.m_expandConstantBuffer = &light;
-    modelInitData.m_expandConstantBufferSize = sizeof(light);
-    modelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    modelInitData.m_colorBufferFormat[1] = DXGI_FORMAT_R32_FLOAT;
-
-    model.Init(modelInitData);
-}
-void InitSphereModels(Model* sphereModels, Light* sphereLight, int numModel)
-{
-  
-    ModelInitData modelInitData;
-    modelInitData.m_tkmFilePath = "Assets/modelData/sphere.tkm";
-    modelInitData.m_fxFilePath = "Assets/shader/preset/sample3D.fx";
-   
-    modelInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    modelInitData.m_colorBufferFormat[1] = DXGI_FORMAT_R32_FLOAT;
-
-    for (int i = 0; i < numModel; i++) {
-        sphereLight[i].directionalLight[0].direction.x = 0.0f;
-        sphereLight[i].directionalLight[0].direction.y = 0.0f;
-        sphereLight[i].directionalLight[0].direction.z = -1.0f;
-        sphereLight[i].directionalLight[0].direction.Normalize();
-
-       
-        sphereLight[i].eyePos = g_camera3D->GetPosition();
-
-        switch (rand() % 3) {
-        case 0:
-            sphereLight[i].directionalLight[0].color.x = 200.0f;
-            sphereLight[i].directionalLight[0].color.y = 0.0f;
-            sphereLight[i].directionalLight[0].color.z = 0.0f;
-            sphereLight[i].ambinetLight.x = 0.5f;
-            sphereLight[i].ambinetLight.y = 0.0f;
-            sphereLight[i].ambinetLight.z = 0.0f;
-
-            break;
-        case 1:
-            sphereLight[i].directionalLight[0].color.x = 0.0f;
-            sphereLight[i].directionalLight[0].color.y = 200.0f;
-            sphereLight[i].directionalLight[0].color.z = 0.0f;
-            sphereLight[i].ambinetLight.x = 0.0f;
-            sphereLight[i].ambinetLight.y = 0.5f;
-            sphereLight[i].ambinetLight.z = 0.0f;
-
-            break;
-        case 2:
-            sphereLight[i].directionalLight[0].color.x = 0.0f;
-            sphereLight[i].directionalLight[0].color.y = 0.0f;
-            sphereLight[i].directionalLight[0].color.z = 200.0f;
-            sphereLight[i].ambinetLight.x = 0.0f;
-            sphereLight[i].ambinetLight.y = 0.0f;
-            sphereLight[i].ambinetLight.z = 0.5f;
-
-            break;
-        }
-        float t = ( rand() % 100 )/ 100.0f;
-
-        modelInitData.m_expandConstantBuffer = &sphereLight[i];
-        modelInitData.m_expandConstantBufferSize = sizeof(sphereLight[i]);
-
-        sphereModels[i].Init(modelInitData);
-        float x = Math::Lerp(t, -250.0f, 250.0f);
-        t = (rand() % 100) / 100.0f;
-        float y = Math::Lerp(t, 20.0f, 200.0f);
-        t = (rand() % 100) / 100.0f;
-        float z = Math::Lerp(t, 0.0f, -2000.0f);
-        
-
-
-        sphereModels[i].UpdateWorldMatrix(
-            { x, y, z }, 
-            g_quatIdentity, 
-            { 0.5f, 0.5f, 0.5f }
-        );
+        shadowMap.RegisterShadowCaster(shadowCasterModel);
     }
 }
-void MoveCamera()
+/// <summary>
+/// 空モデルを初期化
+/// </summary>
+/// <param name=""></param>
+void InitSkyModel(Model& skyModel)
 {
-    g_camera3D->MoveForward(g_pad[0]->GetLStickYF() * 3.0f );
-    g_camera3D->MoveRight(g_pad[0]->GetLStickXF() * 3.0f );
+    ModelInitData initData;
+    initData.m_tkmFilePath = "Assets/modelData/sky.tkm";
+    initData.m_fxFilePath = "Assets/shader/preset/sky.fx";
+    initData.m_colorBufferFormat[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    skyModel.Init(initData);
+    skyModel.UpdateWorldMatrix(g_vec3Zero, g_quatIdentity, { 500.0f, 500.0f, 500.0f });
+
+}
+/// <summary>
+/// ライトを初期化
+/// </summary>
+/// <param name="light"></param>
+void InitLight(Light& light)
+{
+    // 光を強めに設定する
+    light.directionalLight[0].color.x = 10.8f;
+    light.directionalLight[0].color.y = 10.8f;
+    light.directionalLight[0].color.z = 10.8f;
+
+    light.directionalLight[0].direction.x = -1.0f;
+    light.directionalLight[0].direction.y = -1.0f;
+    light.directionalLight[0].direction.z = 0.0f;
+    light.directionalLight[0].direction.Normalize();
+
+    light.ambinetLight.x = 0.2f;
+    light.ambinetLight.y = 0.2f;
+    light.ambinetLight.z = 0.2f;
+    light.eyePos = g_camera3D->GetPosition();
+}
+/// <summary>
+/// メインレンダリングターゲットの内容をフレームバッファにコピーするためのスプライトを初期化。
+/// </summary>
+/// <param name="copySprite"></param>
+void InitCopyMainRenderTargetToFrameBufferSprite(Sprite& copySprite, RenderTarget& mainRenderTarget)
+{
+    SpriteInitData spriteInitData;
+    // テクスチャはmainRenderTargetのカラーバッファー
+    spriteInitData.m_textures[0] = &mainRenderTarget.GetRenderTargetTexture();
+    spriteInitData.m_width = 1280;
+    spriteInitData.m_height = 720;
+    // モノクロ用のシェーダーを指定する
+    spriteInitData.m_fxFilePath = "Assets/shader/sample2D.fx";
+    // 初期化オブジェクトを使って、スプライトを初期化する
+    copySprite.Init(spriteInitData);
 }

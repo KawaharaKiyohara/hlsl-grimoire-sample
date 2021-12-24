@@ -91,6 +91,7 @@ private:
 	void LoadTextureFromMemory(const char* memory, unsigned int size );
 		
 private:
-	ID3D12Resource*	m_texture = nullptr;	//テクスチャ。
-	D3D12_RESOURCE_DESC m_textureDesc;	//テクスチャ情報
+	ID3D12Resource*	m_texture = nullptr;// テクスチャ。
+	D3D12_RESOURCE_DESC m_textureDesc;	// テクスチャ情報
+	bool m_isCubeMap = false;			// キューブマップ？
 };
