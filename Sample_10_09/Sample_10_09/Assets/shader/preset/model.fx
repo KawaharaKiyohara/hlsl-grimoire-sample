@@ -117,7 +117,7 @@ float4 PSMain(SPSIn psIn) : SV_Target0
     float3 normal = GetNormal(psIn.normal, psIn.tangent, psIn.biNormal, psIn.uv);
     // アルベドカラー（拡散反射光）
     float4 albedoColor = g_albedo.Sample(g_sampler, psIn.uv); 
-    
+
     float2 shadowMapUV = psIn.posInLvp.xy / psIn.posInLvp.w;
     shadowMapUV = shadowMapUV * float2( 0.5f, -0.5f ) + 0.5f ;
 

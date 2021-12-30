@@ -26,29 +26,54 @@ namespace {
 				index++;
 			}
 		}
+	}
+	/// <summary>
+	/// 近接9ピクセルをサンプリングするためのUVオフセットを計算する。
+	/// </summary>
+	/// <param name="dwWidth"></param>
+	/// <param name="dwHeight"></param>
+	/// <param name="avSampleOffsets"></param>
+	void GetSampleOffset3x3(DWORD dwWidth, DWORD dwHeight, Vector4 avSampleOffsets[])
+	{
+		// 1テクセルオフセット
+		float tU = 1.0f / dwWidth;
+		float tV = 1.0f / dwHeight;
 
+		int index = 0;
+		for (int y = 0; y < 3; y++) {
+			for (int x = 0; x < 3; x++) {
+				avSampleOffsets[index].x = (x - 1.0f) * tU;
+				avSampleOffsets[index].y = (y - 1.0f) * tV;
+
+				index++;
+			}
+		}
 	}
 }
 
-void Tonemap::Init(RenderTarget& mainRenderTarget)
+void Tonemap::InitRenderTargets(RenderTarget& mainRenderTarget)
 {
+	// 平均値を計算する処理のレンダリングターゲットのサイズ。
+	static const int calcAVGRtSize[enNumCalcAvgStep] = {
+		1024,		// enCalcAvg_0
+		256,		// enCalcAvg_1
+		64,			// enCalcAvg_2
+		16,			// enCalcAvg_3
+		4,			// enCalcAvg_4
+		1			// enCalcAvg_5
+	};
 	// 平均輝度計算用のレンダリングターゲットを作成。
-	for (int i = 0; i < enNumCalcAvgSprite; i++) {
-		int rtSize = 1 << (2 * (enNumCalcAvgSprite - i - 1));
+	for (int i = 0; i < enNumCalcAvgStep; i++) {
 		m_calcAvgRt[i].Create(
-			rtSize,
-			rtSize,
+			calcAVGRtSize[i],
+			calcAVGRtSize[i],
 			1,
 			1,
 			DXGI_FORMAT_R16_FLOAT,
 			DXGI_FORMAT_UNKNOWN
 		);
 	}
-	// 最終的にトーンマップで使用する平均輝度を書き込むレンダリングターゲットを作成
-	m_avgRt.Create(
-		1,1,1,1, DXGI_FORMAT_R16_FLOAT,
-		DXGI_FORMAT_UNKNOWN
-	);
+	
 	// 最終合成用のスプライトを作成
 	m_finalRt.Create(
 		mainRenderTarget.GetWidth(),
@@ -58,51 +83,39 @@ void Tonemap::Init(RenderTarget& mainRenderTarget)
 		mainRenderTarget.GetColorBufferFormat(),
 		DXGI_FORMAT_UNKNOWN
 	);
-	// 自然対数を底とする対数の平均をとるスプライトを初期化
-	int curRtNo = 0;
+}
+void Tonemap::InitSprites(RenderTarget& mainRenderTarget)
+{
+	for (int procStep = 0; procStep < enNumCalcAvgStep; procStep++)
 	{
 		SpriteInitData initData;
-		initData.m_width = m_calcAvgRt[curRtNo].GetWidth();
-		initData.m_height = m_calcAvgRt[curRtNo].GetHeight();
-		initData.m_colorBufferFormat[0] = m_calcAvgRt[curRtNo].GetColorBufferFormat();
-		initData.m_fxFilePath = "Assets/shader/tonemap.fx";
-		initData.m_psEntryPoinFunc = "PSCalcLuminanceLogAvarage";
+		initData.m_width = m_calcAvgRt[procStep].GetWidth();
+		initData.m_height = m_calcAvgRt[procStep].GetHeight();
+		initData.m_colorBufferFormat[0] = m_calcAvgRt[procStep].GetColorBufferFormat();
 		initData.m_expandConstantBuffer = m_sampleUVOffsetArray;
 		initData.m_expandConstantBufferSize = sizeof(m_sampleUVOffsetArray);
-		initData.m_textures[0] = &mainRenderTarget.GetRenderTargetTexture();
-		m_calcAvgSprites[enCalcAvgLog].Init(initData);
+		initData.m_fxFilePath = "Assets/shader/tonemap.fx";
+
+		if (procStep == enCalcAvgStep_0) {
+			// 自然対数を底とする対数の平均をとるスプライトを初期化
+			initData.m_psEntryPoinFunc = "PSCalcLuminanceLogAvarage";
+			initData.m_textures[0] = &mainRenderTarget.GetRenderTargetTexture();
+			m_calcAvgSprites[procStep].Init(initData);
+		}
+		else if (procStep == enCalcAvgStep_5) {
+			// exp関数を用いて自然対数を底とする対数から平均輝度に復元するためのスプライトを初期化。
+			initData.m_psEntryPoinFunc = "PSCalcLuminanceExpAvarage";
+			initData.m_textures[0] = &m_calcAvgRt[procStep - 1].GetRenderTargetTexture();
+			m_calcAvgSprites[procStep].Init(initData);
+		}
+		else {
+			// 平均をとるスプライトを初期化。
+			initData.m_psEntryPoinFunc = "PSCalcLuminanceAvarage";
+			initData.m_textures[0] = &m_calcAvgRt[procStep - 1].GetRenderTargetTexture();
+			m_calcAvgSprites[procStep].Init(initData);
+		}
 	}
 
-	// 平均をとるスプライトを初期化。
-	curRtNo++;
-	int calsAvgSpriteNo = enCalcAvg_Start;
-	while (curRtNo < enCalcAvg_End) {
-		SpriteInitData initData;
-		initData.m_width = m_calcAvgRt[curRtNo].GetWidth();
-		initData.m_height = m_calcAvgRt[curRtNo].GetHeight();
-		initData.m_colorBufferFormat[0] = m_calcAvgRt[curRtNo].GetColorBufferFormat();
-		initData.m_fxFilePath = "Assets/shader/tonemap.fx";
-		initData.m_psEntryPoinFunc = "PSCalcLuminanceAvarage";
-		initData.m_expandConstantBuffer = m_sampleUVOffsetArray;
-		initData.m_expandConstantBufferSize = sizeof(m_sampleUVOffsetArray);
-		initData.m_textures[0] = &m_calcAvgRt[curRtNo - 1].GetRenderTargetTexture();
-		m_calcAvgSprites[calsAvgSpriteNo].Init(initData);
-		calsAvgSpriteNo++;
-		curRtNo++;
-	}
-	// exp関数を用いて自然対数を底とする対数から平均輝度に復元するためのスプライトを初期化。
-	{
-		SpriteInitData initData;
-		initData.m_width = m_calcAvgRt[curRtNo].GetWidth();
-		initData.m_height = m_calcAvgRt[curRtNo].GetHeight();
-		initData.m_colorBufferFormat[0] = m_calcAvgRt[curRtNo].GetColorBufferFormat();
-		initData.m_fxFilePath = "Assets/shader/tonemap.fx";
-		initData.m_psEntryPoinFunc = "PSCalcLuminanceExpAvarage";
-		initData.m_expandConstantBuffer = m_sampleUVOffsetArray;
-		initData.m_expandConstantBufferSize = sizeof(m_sampleUVOffsetArray);
-		initData.m_textures[0] = &m_calcAvgRt[curRtNo - 1].GetRenderTargetTexture();
-		m_calcAvgSprites[curRtNo].Init(initData);
-	}
 	// 平均輝度を使ってトーンマップを行うためのスプライトを初期化。
 	{
 		SpriteInitData initData;
@@ -112,8 +125,8 @@ void Tonemap::Init(RenderTarget& mainRenderTarget)
 		initData.m_fxFilePath = "Assets/shader/tonemap.fx";
 		initData.m_psEntryPoinFunc = "PSFinal";
 		initData.m_textures[0] = &mainRenderTarget.GetRenderTargetTexture();
-		initData.m_textures[1] = &m_calcAvgRt[enCalcAvgExp].GetRenderTargetTexture();
-		
+		initData.m_textures[1] = &m_calcAvgRt[enCalcAvgStep_5].GetRenderTargetTexture();
+
 		m_finalSprite.Init(initData);
 	}
 	// トーンマップされた絵をメインレンダリングターゲットにコピーするためのスプライトを初期化。
@@ -128,33 +141,49 @@ void Tonemap::Init(RenderTarget& mainRenderTarget)
 	}
 }
 
-void Tonemap::Execute(RenderContext& rc, RenderTarget& mainRenderTarget)
+void Tonemap::ExecuteCalcAvg(RenderContext& rc)
 {
 	// シーンの輝度の平均を計算していく。
-	for (int spriteNo = 0; spriteNo < enNumCalcAvgSprite; spriteNo++) {
+	for (int procStep = 0; procStep < enNumCalcAvgStep; procStep++) {
 		// レンダリングターゲットとして利用できるまで待つ
-		rc.WaitUntilToPossibleSetRenderTarget(m_calcAvgRt[spriteNo]);
+		rc.WaitUntilToPossibleSetRenderTarget(m_calcAvgRt[procStep]);
 		// レンダリングターゲットを設定
-		rc.SetRenderTargetAndViewport(m_calcAvgRt[spriteNo]);
-		rc.ClearRenderTargetView(m_calcAvgRt[spriteNo]);
-		GetSampleOffsets4x4(
-			m_calcAvgSprites[spriteNo].GetTextureWidth(0),
-			m_calcAvgSprites[spriteNo].GetTextureHeight(0),
-			m_sampleUVOffsetArray
-		);
-		m_calcAvgSprites[spriteNo].Draw(rc);
+		rc.SetRenderTargetAndViewport(m_calcAvgRt[procStep]);
+		rc.ClearRenderTargetView(m_calcAvgRt[procStep]);
+		if (procStep == enCalcAvgStep_0) {
+			// 対数平均は9x9テクセルをサンプリングするので、UVオフセットの計算の仕方を変更する。
+			GetSampleOffset3x3(
+				m_calcAvgSprites[procStep].GetTextureWidth(0),
+				m_calcAvgSprites[procStep].GetTextureHeight(0),
+				m_sampleUVOffsetArray
+			);
+		}
+		else {
+			// それ以外は4x4テクセルをサンプリングする。
+			GetSampleOffsets4x4(
+				m_calcAvgSprites[procStep].GetTextureWidth(0),
+				m_calcAvgSprites[procStep].GetTextureHeight(0),
+				m_sampleUVOffsetArray
+			);
+		}
+		m_calcAvgSprites[procStep].Draw(rc);
 
 		// レンダリングターゲットへの書き込み終了待ち
-		rc.WaitUntilFinishDrawingToRenderTarget(m_calcAvgRt[spriteNo]);
+		rc.WaitUntilFinishDrawingToRenderTarget(m_calcAvgRt[procStep]);
 	}
-	// 求めた平均輝度を使ってトーンマップを行う。
+}
+void Tonemap::ExecuteTonemap(RenderContext& rc)
+{
 	// レンダリングターゲットを設定
+	rc.WaitUntilToPossibleSetRenderTarget(m_finalRt);
 	rc.SetRenderTargetAndViewport(m_finalRt);
 	// 最終合成。
 	m_finalSprite.Draw(rc);
 	// レンダリングターゲットへの書き込み終了待ち
 	rc.WaitUntilFinishDrawingToRenderTarget(m_finalRt);
-	
+}
+void Tonemap::ExecuteCopyResultToMainRenderTarget(RenderContext& rc, RenderTarget& mainRenderTarget)
+{
 	// 最終合成された絵をメインレンダリングターゲットにコピーする。
 	rc.WaitUntilToPossibleSetRenderTarget(mainRenderTarget);
 	// レンダリングターゲットを設定
@@ -162,5 +191,24 @@ void Tonemap::Execute(RenderContext& rc, RenderTarget& mainRenderTarget)
 	m_copyMainRtSprite.Draw(rc);
 	// レンダリングターゲットへの書き込み終了待ち
 	rc.WaitUntilFinishDrawingToRenderTarget(mainRenderTarget);
+}
+void Tonemap::Init(RenderTarget& mainRenderTarget)
+{
+	// 1. 各種レンダリングターゲットを初期化。
+	InitRenderTargets(mainRenderTarget);
 
+	// 2. 各種スプライトを初期化。
+	InitSprites(mainRenderTarget);
+}
+void Tonemap::Execute(RenderContext& rc, RenderTarget& mainRenderTarget)
+{
+	// 1. シーンの平均輝度計算。
+	ExecuteCalcAvg(rc);
+	
+	// 2. シーンの平均輝度を使ってトーンマップ。
+	ExecuteTonemap(rc);
+
+	// 3. トーンマップした結果の画像をメインレンダリングターゲットにコピーする。
+	ExecuteCopyResultToMainRenderTarget(rc, mainRenderTarget);
+	
 }

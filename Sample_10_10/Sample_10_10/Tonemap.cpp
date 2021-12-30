@@ -26,7 +26,28 @@ namespace {
 				index++;
 			}
 		}
+	}
+	/// <summary>
+	/// 近接9ピクセルをサンプリングするためのUVオフセットを計算する。
+	/// </summary>
+	/// <param name="dwWidth"></param>
+	/// <param name="dwHeight"></param>
+	/// <param name="avSampleOffsets"></param>
+	void GetSampleOffset3x3(DWORD dwWidth, DWORD dwHeight, Vector4 avSampleOffsets[])
+	{
+		// 1テクセルオフセット
+		float tU = 1.0f / dwWidth;
+		float tV = 1.0f / dwHeight;
 
+		int index = 0;
+		for (int y = 0; y < 3; y++) {
+			for (int x = 0; x < 3; x++) {
+				avSampleOffsets[index].x = (x - 1.0f) * tU;
+				avSampleOffsets[index].y = (y - 1.0f) * tV;
+
+				index++;
+			}
+		}
 	}
 }
 

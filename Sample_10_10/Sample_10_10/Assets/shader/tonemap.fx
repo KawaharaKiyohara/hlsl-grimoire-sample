@@ -35,73 +35,8 @@ PSInput VSMain(VSInput In)
     return psIn;
 }
 
-float3 Rgb2Hsv(float3 rgb)
-{
-    float3 hsv;
-    
-    // RGB 2 HSV
-    float fMax = max(rgb.r, max(rgb.g, rgb.b));
-    float fMin = min(rgb.r, min(rgb.g, rgb.b));
-    float delta = fMax - fMin;
 
-	hsv.z = fMax; // v
-	if (fMax != 0.0){
-	    hsv.y = delta / fMax;//s
-	}else{
-	    hsv.y = 0.0;//s
-    }
-	
-//	if (hsv.y == 0.0) {
-//		hsv.x = NO_HUE; // h
-//	} else {
-      if ( rgb.r == fMax ){
-          hsv.x =     (rgb.g - rgb.b) / delta;// h
-      }else if (rgb.g == fMax){
-          hsv.x = 2 + (rgb.b - rgb.r) / delta;// h
-      }else{
-          hsv.x = 4 + (rgb.r - rgb.g) / delta;// h
-      }
-      hsv.x /= 6.0;
-      if (hsv.x < 0) hsv.x += 1.0;
-//  }
 
-    return hsv;
-}
-// RGBからHSVのV(輝度)を求める
-float Rgb2V( float3 rgb)
-{
-    return max(rgb.r, max(rgb.g, rgb.b));
-}
-float3 Hsv2Rgb(float3 hsv)
-{
-    float3 ret;
-    // HSV 2 RGB
-    if ( hsv.y == 0 ){ /* Grayscale */
-        ret.r = ret.g = ret.b = hsv.z;// v
-    } else {
-        if (1.0 <= hsv.x) hsv.x -= 1.0;
-        hsv.x *= 6.0;
-        float i = floor (hsv.x);
-        float f = hsv.x - i;
-        float aa = hsv.z * (1 - hsv.y);
-        float bb = hsv.z * (1 - (hsv.y * f));
-        float cc = hsv.z * (1 - (hsv.y * (1 - f)));
-        if( i < 1 ){
-	        ret.r = hsv.z; ret.g = cc;    ret.b = aa;
-        }else if( i < 2 ){
-	    	ret.r = bb;    ret.g = hsv.z; ret.b = aa;
-        }else if( i < 3 ){
-    		ret.r = aa;    ret.g = hsv.z; ret.b = cc;
-        }else if( i < 4 ){
-    		ret.r = aa;    ret.g = bb;    ret.b = hsv.z;
-        }else if( i < 5 ){
-    		ret.r = cc;    ret.g = aa;    ret.b = hsv.z;
-        }else{
-    		ret.r = hsv.z; ret.g = aa;    ret.b = bb;
-        }
-    }
-	return ret;
-}
 ////////////////////////////////////////////////////////
 // 輝度の対数平均を求める。
 ////////////////////////////////////////////////////////
@@ -130,7 +65,7 @@ float4 PSCalcLuminanceLogAvarage(PSInput In) : SV_Target0
     {
 
         vSample = max( sceneTexture.Sample(Sampler, In.uv+g_avSampleOffsets[iSample].xy), 0.001f );
-        float v = Rgb2V( vSample );
+        float v = dot( LUMINANCE_VECTOR, vSample.xyz );
         fLogLumSum += log(v);
     }
     
@@ -229,7 +164,6 @@ float4 PSFinal( PSInput In) : SV_Target0
 {
     
 	float4 vSample = sceneTexture.Sample(Sampler, In.uv );
-    float3 hsv = Rgb2Hsv(vSample.xyz);
 
 	float fAvgLum = 0.0f;
     if( currentAvgTexNo == 0){
@@ -237,14 +171,17 @@ float4 PSFinal( PSInput In) : SV_Target0
     }else{
         fAvgLum = lastLumAvgTextureArray[1].Sample(Sampler, float2( 0.5f, 0.5f)).r;
     }
-    // 明るさをトーンマップする。
-    hsv.z = ( middleGray / ( max(fAvgLum, 0.001f ))) * hsv.z;
-    hsv.z = ACESFilm(hsv.z);
-
-    // HSVをRGBに変換して出力
-    float4 color;
-    color.xyz = Hsv2Rgb(hsv);
-    color.w= 1.0f;
+     // 露光値を計算する。
+    // 平均輝度を0.18にするためのスケール値を求める。
+    float k = ( 0.18f / ( max(fAvgLum, 0.001f )));
+    // スケールをこのピクセルの輝度に掛け算する。
+    vSample.xyz *= k;
     
-	return color;
+    // Reinhard関数。
+    vSample.xyz = ( vSample.xyz / (vSample.xyz + 1.0f) ) * (1 + vSample.xyz / 4.0f);
+
+    // ガンマ補正
+    vSample.xyz = pow( max( vSample.xyz, 0.0001f), 1.0f / 2.2f );
+    
+	return vSample;
 }
