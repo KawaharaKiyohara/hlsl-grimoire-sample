@@ -79,6 +79,24 @@ public:
 	/// </summary>
 	/// <param name="renderContext">レンダリングコンテキスト/param>
 	void Draw(RenderContext& renderContext);
+	/// <summary>
+		/// テクスチャの幅を取得。
+		/// </summary>
+		/// <param name="texNo">テクスチャ番号</param>
+		/// <returns></returns>
+	int GetTextureWidth(int texNo) const
+	{
+		return m_textures[texNo].GetWidth();
+	}
+	/// <summary>
+	/// テクスチャの高さを取得。
+	/// </summary>
+	/// <param name="texNo">テクスチャ番号</param>
+	/// <returns></returns>
+	int GetTextureHeight(int texNo) const
+	{
+		return m_textures[texNo].GetHeight();
+	}
 private:
 	/// <summary>
 	/// テクスチャを初期化。

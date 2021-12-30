@@ -3,6 +3,8 @@
 #include "sub.h"
 #include "bloom.h"
 #include "ShadowMap.h"
+#include "Tonemap.h"
+
 
 ///////////////////////////////////////////////////////////////////
 // ウィンドウプログラムのメイン関数
@@ -17,9 +19,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     //////////////////////////////////////
     g_camera3D->SetFar(50000.0f);
     g_camera3D->Update();
-    // ルートシグネチャの初期化
-    RootSignature rs;
-    InitRootSignature(rs);
 
     // メインレンダリングターゲットを作成。
     RenderTarget mainRenderTarget;
@@ -40,9 +39,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     Light light;
     InitLight(light);
     
-    // 背景モデルを初期化。
+    // 通常描画の背景モデルと、シャドウマップ描画用の背景モデル(シャドウキャスターを初期化。
+    SModelExCB modelExCb;
     Model bgModel, bgShadowCaster;
-    InitBackgourndModel(bgModel, bgShadowCaster, light, shadowMap);
+    InitBackgourndModel(bgModel, bgShadowCaster, light, shadowMap, modelExCb);
+
     // 空モデルを初期化。
     Model skyModel;
     InitSkyModel(skyModel);
@@ -51,11 +52,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     Bloom bloom;
     bloom.Init(mainRenderTarget);
 
+    // トーンマップを初期化。
+    Tonemap tonemap;
+    tonemap.Init(mainRenderTarget);
     // メインレンダリングターゲットの内容をフレームバッファにコピーするためのスプライトを初期化
     Sprite copyToFrameBufferSprite;
     InitCopyMainRenderTargetToFrameBufferSprite(copyToFrameBufferSprite, mainRenderTarget);
-    
 
+     
     //////////////////////////////////////
     // 初期化を行うコードを書くのはここまで！！！
     //////////////////////////////////////
@@ -66,32 +70,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     {
         // 1フレームの開始
         g_engine->BeginFrame();
-
+        
+        // カメラを動かす。
+        MoveCamera();
         //////////////////////////////////////
         // ここから絵を描くコードを記述する
         //////////////////////////////////////
         
+        // モデルの拡張定数バッファの内容を更新。
+        modelExCb.light = light;
+        modelExCb.lvpMatrix = shadowMap.GetLVPMatrix();
         // シャドウマップ作成。
         shadowMap.Draw(renderContext);
 
-        // メインれだリングターゲットにシーンを描画
-        // レンダリングターゲットとして利用できるまで待つ
-        renderContext.WaitUntilToPossibleSetRenderTarget(mainRenderTarget);
-        // メインレンダリングターゲットをカレントレンダリングターゲットとして設定。
-        renderContext.SetRenderTargetAndViewport(mainRenderTarget);
-        // レンダリングターゲットをクリア
-        renderContext.ClearRenderTargetView(mainRenderTarget);
-
-        // メインレンダリングターゲットに背景を描画する
-        bgModel.Draw(renderContext);
-        // 空を描画。
-        skyModel.Draw(renderContext);
-
-        // レンダリングターゲットへの書き込み終了待ち
-        renderContext.WaitUntilFinishDrawingToRenderTarget(mainRenderTarget);
+        // メインレンダリンターゲットにシーンを描画
+        DrawSceneToMainRenderTarget(bgModel, skyModel, mainRenderTarget, renderContext);
 
         // ここからポストエフェクト
-        // 
+        
+        tonemap.Execute(renderContext, mainRenderTarget);
+
         // ブルームを実行        
         bloom.Draw(renderContext, mainRenderTarget);
 
@@ -100,7 +98,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             g_graphicsEngine->GetCurrentFrameBuffuerRTV(),
             g_graphicsEngine->GetCurrentFrameBuffuerDSV()
         );
-
         copyToFrameBufferSprite.Draw(renderContext);
 
         //////////////////////////////////////

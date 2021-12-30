@@ -25,18 +25,11 @@ void InitMainDepthRenderTarget(RenderTarget& mainRenderTarget, RenderTarget& dep
         clearColor
     );
 }
-// ルートシグネチャの初期化
-void InitRootSignature(RootSignature& rs)
-{
-    rs.Init(D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE_WRAP);
-}
+
 /// <summary>
 /// 背景モデルを初期化。
 /// </summary>
-void InitBackgourndModel(Model& model, Model& shadowCasterModel, Light& light, ShadowMap& shadowMap)
+void InitBackgourndModel(Model& model, Model& shadowCasterModel, Light& light, ShadowMap& shadowMap, SModelExCB& modelExCb)
 {
     {
         // モデルの初期化情報を設定する
@@ -46,9 +39,9 @@ void InitBackgourndModel(Model& model, Model& shadowCasterModel, Light& light, S
         // シェーダーファイルを指定する
         initData.m_fxFilePath = "Assets/shader/preset/model.fx";
         // ユーザー拡張の定数バッファーに送るデータを指定する
-        initData.m_expandConstantBuffer = &light;
+        initData.m_expandConstantBuffer = &modelExCb;
         // ユーザー拡張の定数バッファーに送るデータのサイズを指定する
-        initData.m_expandConstantBufferSize = sizeof(light);
+        initData.m_expandConstantBufferSize = sizeof(modelExCb);
         // レンダリングするカラーバッファーのフォーマットを指定する
         initData.m_colorBufferFormat[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
         // 拡張シェーダーリソースとして、シャドウマップを渡す。
@@ -92,18 +85,18 @@ void InitSkyModel(Model& skyModel)
 void InitLight(Light& light)
 {
     // 光を強めに設定する
-    light.directionalLight[0].color.x = 10.8f;
-    light.directionalLight[0].color.y = 10.8f;
-    light.directionalLight[0].color.z = 10.8f;
+    light.directionalLight[0].color.x = 50.8f;
+    light.directionalLight[0].color.y = 50.8f;
+    light.directionalLight[0].color.z = 50.8f;
 
     light.directionalLight[0].direction.x = -1.0f;
     light.directionalLight[0].direction.y = -1.0f;
-    light.directionalLight[0].direction.z = 0.0f;
+    light.directionalLight[0].direction.z = -1.0f;
     light.directionalLight[0].direction.Normalize();
 
-    light.ambinetLight.x = 0.2f;
-    light.ambinetLight.y = 0.2f;
-    light.ambinetLight.z = 0.2f;
+    light.ambinetLight.x = 0.5f;
+    light.ambinetLight.y = 0.5f;
+    light.ambinetLight.z = 0.5f;
     light.eyePos = g_camera3D->GetPosition();
 }
 /// <summary>
@@ -118,7 +111,29 @@ void InitCopyMainRenderTargetToFrameBufferSprite(Sprite& copySprite, RenderTarge
     spriteInitData.m_width = 1280;
     spriteInitData.m_height = 720;
     // モノクロ用のシェーダーを指定する
-    spriteInitData.m_fxFilePath = "Assets/shader/sample2D.fx";
+    spriteInitData.m_fxFilePath = "Assets/shader/preset/sprite.fx";
     // 初期化オブジェクトを使って、スプライトを初期化する
     copySprite.Init(spriteInitData);
+}
+void DrawSceneToMainRenderTarget(Model& bgModel, Model& skyModel, RenderTarget& mainRenderTarget, RenderContext& renderContext)
+{
+    // レンダリングターゲットとして利用できるまで待つ
+    renderContext.WaitUntilToPossibleSetRenderTarget(mainRenderTarget);
+    // メインレンダリングターゲットをカレントレンダリングターゲットとして設定。
+    renderContext.SetRenderTargetAndViewport(mainRenderTarget);
+    // レンダリングターゲットをクリア
+    renderContext.ClearRenderTargetView(mainRenderTarget);
+
+    // メインレンダリングターゲットに背景を描画する
+    bgModel.Draw(renderContext);
+    // 空を描画。
+    skyModel.Draw(renderContext);
+
+    // レンダリングターゲットへの書き込み終了待ち
+    renderContext.WaitUntilFinishDrawingToRenderTarget(mainRenderTarget);
+}
+void MoveCamera()
+{
+    g_camera3D->MoveForward(g_pad[0]->GetLStickYF() * 3.0f);
+    g_camera3D->RotateY(g_pad[0]->GetLStickXF() * 0.03f);
 }

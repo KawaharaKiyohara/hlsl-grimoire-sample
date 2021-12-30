@@ -25,6 +25,12 @@ struct Light
     Vector3 ambinetLight;   // 環境光
 };
 
+struct SModelExCB {
+    Light light;            // ライト。
+    float pad;
+    Matrix lvpMatrix;   // ライトビュープロジェクション行列。
+};
+
 const int NUM_WEIGHTS = 8;
 
 /// <summary>
@@ -36,8 +42,9 @@ struct SBlurParam
 };
 
 // 関数宣言
-void InitRootSignature(RootSignature& rs);
 void InitLight(Light& light);
-void InitBackgourndModel(Model& model, Model& shadowCasterModel, Light& light, ShadowMap& shadowMap);
+void InitBackgourndModel(Model& model, Model& shadowCasterModel, Light& light, ShadowMap& shadowMap, SModelExCB& modelExCb);
 void InitSkyModel(Model& skyModel);
 void InitCopyMainRenderTargetToFrameBufferSprite(Sprite& copySprite, RenderTarget& mainRenderTarget);
+void DrawSceneToMainRenderTarget(Model& bgModel, Model& skyModel, RenderTarget& mainRenderTarget, RenderContext& renderContext);
+void MoveCamera();

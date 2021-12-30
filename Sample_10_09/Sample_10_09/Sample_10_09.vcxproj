@@ -212,6 +212,7 @@
     </ClCompile>
     <ClCompile Include="sub.cpp" />
     <ClCompile Include="system\system.cpp" />
+    <ClCompile Include="Tonemap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\MiniEngine\Animation.h" />
@@ -265,6 +266,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="sub.h" />
     <ClInclude Include="system\system.h" />
+    <ClInclude Include="Tonemap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

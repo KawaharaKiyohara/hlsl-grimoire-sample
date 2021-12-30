@@ -30,9 +30,18 @@ public:
 	{
 		return m_shadowMap.GetRenderTargetTexture();
 	}
+	/// <summary>
+	/// ライトビュープロジェクション行列を取得
+	/// </summary>
+	/// <returns></returns>
+	const Matrix& GetLVPMatrix()
+	{
+		return m_lightCamera.GetViewProjectionMatrix();
+	}
 private:
-	Camera m_lightCamera;						// ライトカメラ
-	RenderTarget m_shadowMap;					// シャドウマップ。
+	
+	Camera m_lightCamera;								// ライトカメラ
+	RenderTarget m_shadowMap;						// シャドウマップ。
 	std::vector<Model*> m_shadowCasterArray;	// シャドウキャスターの配列。
 };
 

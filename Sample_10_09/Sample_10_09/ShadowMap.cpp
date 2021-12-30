@@ -18,13 +18,15 @@ void ShadowMap::Init()
 	// ライトカメラを初期化。
 	Vector3 lightTarget = { 0.0f, 0.0f, 0.0f };
 	m_lightCamera.SetTarget(lightTarget);
-	Vector3 dirLight = { 1.0f, 1.0f, 0.0f };
+	Vector3 dirLight = { 1.0f, 1.0f, 1.0f };
 	dirLight.Normalize();
-	Vector3 lightPos = lightTarget + dirLight * 500.0f;
+	Vector3 lightPos = lightTarget + dirLight * 5000.0f;
 	m_lightCamera.SetPosition(lightPos);
+	m_lightCamera.SetUp(g_vec3AxisX);
 	m_lightCamera.SetUpdateProjMatrixFunc(Camera::enUpdateProjMatrixFunc_Ortho);
-	m_lightCamera.SetWidth(2000.0f);
-	m_lightCamera.SetHeight(2000.0f);
+	m_lightCamera.SetWidth(5000.0f);
+	m_lightCamera.SetHeight(5000.0f);
+	m_lightCamera.SetFar(10000.0f);
 	m_lightCamera.Update();
 }
 

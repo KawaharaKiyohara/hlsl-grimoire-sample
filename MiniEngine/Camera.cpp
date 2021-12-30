@@ -66,3 +66,15 @@ void Camera::RotateOriginTarget(const Quaternion& qRot)
 	m_position = m_target + toPos;
 	m_isDirty = true;
 }
+void Camera::RotateY(float angle)
+{
+	// 視点から注視点に向かって伸びるベクトルを計算する。
+	Vector3 toTarget = m_target - m_position;
+	Quaternion qRotY;
+	qRotY.SetRotationY(angle);
+	qRotY.Apply(toTarget);
+	m_target = m_position + toTarget;
+	m_isDirty = true;
+
+
+}

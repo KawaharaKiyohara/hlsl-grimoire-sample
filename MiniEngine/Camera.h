@@ -25,7 +25,10 @@ public:
 	/// </summary>
 	/// <param name="qRot">回転させるクォータニオン</param>
 	void RotateOriginTarget( const Quaternion& qRot);
-	
+	/// <summary>
+	/// カメラをY軸回転させる。
+	/// </summary>
+	void RotateY(float angle);
 	/// <summary>
 	/// カメラを動かす。
 	/// </summary>
