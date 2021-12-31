@@ -87,7 +87,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         DrawSceneToMainRenderTarget(bgModel, skyModel, mainRenderTarget, renderContext);
 
         // ここからポストエフェクト
-        
         tonemap.Execute(renderContext, mainRenderTarget);
 
         // ブルームを実行        

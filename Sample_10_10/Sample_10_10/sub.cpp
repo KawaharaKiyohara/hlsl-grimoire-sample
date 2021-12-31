@@ -85,9 +85,9 @@ void InitSkyModel(Model& skyModel)
 void InitLight(Light& light)
 {
     // 光を強めに設定する
-    light.directionalLight[0].color.x = 50.8f;
-    light.directionalLight[0].color.y = 50.8f;
-    light.directionalLight[0].color.z = 50.8f;
+    light.directionalLight[0].color.x = 20.8f;
+    light.directionalLight[0].color.y = 20.8f;
+    light.directionalLight[0].color.z = 20.8f;
 
     light.directionalLight[0].direction.x = -1.0f;
     light.directionalLight[0].direction.y = -1.0f;

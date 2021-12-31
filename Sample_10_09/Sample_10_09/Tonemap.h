@@ -49,10 +49,11 @@ private:
 		enCalcAvgStep_5,	// 平均輝度を計算。16テクセルサンプリングしてから対数の値から輝度に復元する。
 		enNumCalcAvgStep,	// 処理のステップ数。
 	};
+	// step-1 Tonemapクラスに各種メンバ変数を追加する。
 	RenderTarget m_calcAvgRt[enNumCalcAvgStep];		// 平均輝度計算用のレンダリングターゲット。
-	RenderTarget m_finalRt;							// 最終合成レンダリングターゲット。
+	RenderTarget m_tonemapRt;						// トーンマップ用のレンダリングターゲット。
 	Sprite m_calcAvgSprites[enNumCalcAvgStep];		// 平均輝度計算用のスプライト。
-	Sprite m_finalSprite;							// 最終合成用のスプライト。
+	Sprite m_tonemapSprite;							// トーンマップ用のスプライト。
 	Sprite m_copyMainRtSprite;						// メインレンダリングターゲットに描画するためのスプライト。
 	Vector4 m_sampleUVOffsetArray[NUM_SAMPLES];		// 16テクセルサンプリングする際のUVオフセットのテーブル。
 };

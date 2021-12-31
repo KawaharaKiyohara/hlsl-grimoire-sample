@@ -44,6 +44,54 @@ cbuffer cbCalcLuminanceAvg : register(b0){
 	float4 g_avSampleOffsets[MAX_SAMPLES];
 };
 
+
+/*!
+ *@brief ACESƒg[ƒ“ƒ}ƒbƒp[
+ */
+float ACESFilm(float x)
+{
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return saturate((x*(a*x+b))/(x*(c*x+d)+e));
+}
+
+////////////////////////////////////////////////////////
+// RGB->HSV, HSV->RGB‚Ö‚ÌF‹óŠÔ•ÏŠ·ŠÖ˜A‚ÌŠÖ”WB
+////////////////////////////////////////////////////////
+
+/*!
+ * @brief RGBŒn‚©‚çHSVŒn‚É•ÏŠ·‚·‚éB
+ */
+float3 Rgb2Hsv(float3 c)
+{
+    float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    float4 p = lerp(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
+    float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+/*!
+ * @brief RGBŒn‚©‚çHSV‚ÌV(‹P“x)‚ğ‹‚ß‚éB
+ */
+float Rgb2V( float3 rgb)
+{
+    return max(rgb.r, max(rgb.g, rgb.b));
+}
+/*!
+ * @brief HSVŒn‚©‚çRGBŒn‚É•ÏŠ·‚·‚éB
+ */
+float3 Hsv2Rgb(float3 c)
+{
+    float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
 ////////////////////////////////////////////////////////
 // ‚±‚±‚©‚ç‹P“x‚Ì•½‹Ï‚ğ‹‚ß‚éˆ—B
 ////////////////////////////////////////////////////////
@@ -55,14 +103,16 @@ cbuffer cbCalcLuminanceAvg : register(b0){
  */
 float4 PSCalcLuminanceLogAvarage(PSInput In) : SV_Target0
 {
-    float3 LUMINANCE_VECTOR  = float3(0.2125f, 0.7154f, 0.0721f);   // ‹P“x’Šo—p‚ÌƒxƒNƒgƒ‹B
-    float  fLogLumSum = 0.0f;                                       // ‹P“x‚Ì©‘R‘Î”‚Ì‡Œv‚ğ‹L‰¯‚·‚é•Ï”B
+    // step-10 ‹P“x‚Ì‘Î”•½‹Ï‚ğ‹‚ß‚éB
+    float  fLogLumSum = 0.0f;  // ‹P“x‚Ì©‘R‘Î”‚Ì‡Œv‚ğ‹L‰¯‚·‚é•Ï”B
     
     // 9ƒeƒNƒZƒ‹ƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
     for(int i = 0; i < 9; i++)
     {
+        // ƒV[ƒ“‚ÌƒJƒ‰[‚ğƒTƒ“ƒvƒŠƒ“ƒOB
         float3 color = max( sceneTexture.Sample(Sampler, In.uv+g_avSampleOffsets[i].xy), 0.001f );
-        float v = dot( LUMINANCE_VECTOR, color.xyz );
+        // RGB‚©‹P“x‚ğ‹‚ß‚éB
+        float v = Rgb2V(color);
         // ƒlƒCƒsƒA”‚ğ’ê‚Æ‚·‚é‹P“x‚Ì©‘R‘Î”‚ğ‰ÁZ‚·‚éB
         fLogLumSum += log(v);
     }
@@ -79,6 +129,7 @@ float4 PSCalcLuminanceLogAvarage(PSInput In) : SV_Target0
  */
 float4 PSCalcLuminanceAvarage(PSInput In) : SV_Target0
 {
+    // step-11 ‹P“x‚Ì‘Î”•½‹Ï‚Ì•½‹Ï‚ğ‹‚ß‚éB
 	float fResampleSum = 0.0f; 
     
     // 16ƒeƒNƒZƒ‹ƒTƒ“ƒvƒŠƒ“ƒO‚µ‚Ä•½‹Ï‚ğ‹‚ß‚éB
@@ -86,7 +137,6 @@ float4 PSCalcLuminanceAvarage(PSInput In) : SV_Target0
     {
         fResampleSum += sceneTexture.Sample(Sampler, In.uv+g_avSampleOffsets[iSample].xy);
     }
-    
     fResampleSum /= 16;
 
     return float4(fResampleSum, fResampleSum, fResampleSum, 1.0f);
@@ -100,6 +150,7 @@ float4 PSCalcLuminanceAvarage(PSInput In) : SV_Target0
  */
 float4 PSCalcLuminanceExpAvarage( PSInput In ) : SV_Target0
 {
+    // step-12 ‘Î”•½‹Ï‚ÌŒvZ‚Æ•œŒ³B
 	float fResampleSum = 0.0f;
     
     for(int iSample = 0; iSample < 16; iSample++)
@@ -124,22 +175,29 @@ Texture2D<float4> lumAvgTexture : register(t1);		        //•½‹Ï‹P“x‚ª‹L‰¯‚³‚ê‚Ä‚
  */
 float4 PSFinal( PSInput In) : SV_Target0
 {
+    // step-13 ƒV[ƒ“‚ÌƒJƒ‰[‚©‚ç‹P“x‚ğŒvZ‚·‚éB
     // ƒV[ƒ“‚ÌƒJƒ‰[‚ğƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
 	float4 sceneColor = sceneTexture.Sample(Sampler, In.uv );
+    // ƒV[ƒ“‚ÌƒJƒ‰[‚ğRGBŒn‚©‚çHSVŒn‚É•ÏŠ·‚·‚éB
+    float3 hsv = Rgb2Hsv(sceneColor);
+
+    // step-14 •½‹Ï‹P“x‚ğg‚Á‚ÄA‚±‚ÌƒsƒNƒZƒ‹‚Ì‹P“x‚ğƒXƒP[ƒ‹ƒ_ƒEƒ“‚·‚éB
     // •½‹Ï‹P“x‚ğƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
 	float avgLum = lumAvgTexture.Sample(Sampler, float2( 0.5f, 0.5f)).r;
-    
-    // ˜IŒõ’l‚ğŒvZ‚·‚éB
     // •½‹Ï‹P“x‚ğ0.18‚É‚·‚é‚½‚ß‚ÌƒXƒP[ƒ‹’l‚ğ‹‚ß‚éB
     float k = ( 0.18f / ( max(avgLum, 0.001f )));
-    // ƒXƒP[ƒ‹‚ğ‚±‚ÌƒsƒNƒZƒ‹‚Ì‹P“x‚ÉŠ|‚¯Z‚·‚éB
-    sceneColor.xyz *= k;
-    
-    // ReinhardŠÖ”B¡‰ñ‚Ìreinhard‚ÍA‹P“x2.0ˆÈã‚Í‚ ‚¦‚Ä”’”ò‚Ñ‚·‚é‚æ‚¤‚É‚µ‚Ä‚¢‚éB
-    float luminanceLimit = 2.0f;
-    sceneColor.xyz = ( sceneColor.xyz / (sceneColor.xyz + 1.0f) ) * (1 + sceneColor.xyz / ( luminanceLimit * luminanceLimit ));
+    // ƒXƒP[ƒ‹’l‚ğg‚Á‚ÄA‹P“x‚ğƒXƒP[ƒ‹ƒ_ƒEƒ“B
+    hsv.z *= k;
 
-    // ƒKƒ“ƒ}•â³
+    // step-15 ‹P“x‚Ì•Ï‰»‚ğüŒ`‚©‚ç”ñüŒ`‚É‚·‚éB
+    // ACESƒg[ƒ“ƒ}ƒbƒp[‚ğg‚Á‚Ä‹P“x‚Ì•Ï‰»‚ğ”ñüŒ`‚É‚·‚éB
+    hsv.z = ACESFilm(hsv.z);
+
+    // step-16 RGB‚É–ß‚·B
+    // HSVŒn‚©‚çRGBŒn‚É–ß‚·B
+    sceneColor.xyz = Hsv2Rgb(hsv);
+    
+    // step-17 ƒKƒ“ƒ}•â³B
     sceneColor.xyz = pow( max( sceneColor.xyz, 0.0001f), 1.0f / 2.2f );
     
 	return sceneColor;

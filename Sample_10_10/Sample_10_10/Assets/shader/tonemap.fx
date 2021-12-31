@@ -156,6 +156,16 @@ float4 PSCalcAdaptedLuminance( PSInput In ) : SV_Target0
 
 
 
+float3 ACESFilm(float3 x)
+{
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return saturate((x*(a*x+b))/(x*(c*x+d)+e));
+}
+
 /*!
  *@brief	平均輝度からトーンマップを行うピクセルシェーダー。
  */
@@ -176,9 +186,8 @@ float4 PSFinal( PSInput In) : SV_Target0
     // スケールをこのピクセルの輝度に掛け算する。
     sceneColor.xyz *= k;
     
-    // Reinhard関数。今回のreinhardは、輝度2.0以上はあえて白飛びするようにしている。
-    float luminanceLimit = 2.0f;
-    sceneColor.xyz = ( sceneColor.xyz / (sceneColor.xyz + 1.0f) ) * (1 + sceneColor.xyz / ( luminanceLimit * luminanceLimit ));
+    // Reinhard関数。
+    sceneColor.xyz =  sceneColor.xyz / (sceneColor.xyz + 1.0f);
 
     // ガンマ補正
     sceneColor.xyz = pow( max( sceneColor.xyz, 0.0001f), 1.0f / 2.2f );
