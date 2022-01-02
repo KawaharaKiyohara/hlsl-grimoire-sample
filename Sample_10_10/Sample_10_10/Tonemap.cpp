@@ -3,15 +3,15 @@
 
 namespace {
 	/// <summary>
-	/// ‹ß–T16ƒsƒNƒZƒ‹‚ğƒTƒ“ƒvƒŠƒ“ƒO‚·‚é‚½‚ß‚ÌUVƒIƒtƒZƒbƒg‚ğŒvZ‚·‚éB
+	/// è¿‘å‚16ãƒ”ã‚¯ã‚»ãƒ«ã‚’ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ã™ã‚‹ãŸã‚ã®UVã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’è¨ˆç®—ã™ã‚‹ã€‚
 	/// </summary>
-	/// <param name="dwWidth">Œ³‚ÌƒeƒNƒXƒ`ƒƒ‚Ì•</param>
-	/// <param name="dwHeight">Œ³‚ÌƒeƒNƒXƒ`ƒƒ‚Ì‚‚³</param>
-	/// <param name="avSampleOffsets">UVƒIƒtƒZƒbƒg‚Ì‹L‰¯æB</param>
+	/// <param name="dwWidth">å…ƒã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®å¹…</param>
+	/// <param name="dwHeight">å…ƒã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®é«˜ã•</param>
+	/// <param name="avSampleOffsets">UVã‚ªãƒ•ã‚»ãƒƒãƒˆã®è¨˜æ†¶å…ˆã€‚</param>
 	/// <returns></returns>
 	void GetSampleOffsets4x4(DWORD dwWidth, DWORD dwHeight, Vector4 avSampleOffsets[])
 	{
-		// 1ƒeƒNƒZƒ‹ƒIƒtƒZƒbƒg
+		// 1ãƒ†ã‚¯ã‚»ãƒ«ã‚ªãƒ•ã‚»ãƒƒãƒˆ
 		float tU = 1.0f / dwWidth;
 		float tV = 1.0f / dwHeight;
 
@@ -28,14 +28,14 @@ namespace {
 		}
 	}
 	/// <summary>
-	/// ‹ßÚ9ƒsƒNƒZƒ‹‚ğƒTƒ“ƒvƒŠƒ“ƒO‚·‚é‚½‚ß‚ÌUVƒIƒtƒZƒbƒg‚ğŒvZ‚·‚éB
+	/// è¿‘æ¥9ãƒ”ã‚¯ã‚»ãƒ«ã‚’ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ã™ã‚‹ãŸã‚ã®UVã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’è¨ˆç®—ã™ã‚‹ã€‚
 	/// </summary>
 	/// <param name="dwWidth"></param>
 	/// <param name="dwHeight"></param>
 	/// <param name="avSampleOffsets"></param>
 	void GetSampleOffset3x3(DWORD dwWidth, DWORD dwHeight, Vector4 avSampleOffsets[])
 	{
-		// 1ƒeƒNƒZƒ‹ƒIƒtƒZƒbƒg
+		// 1ãƒ†ã‚¯ã‚»ãƒ«ã‚ªãƒ•ã‚»ãƒƒãƒˆ
 		float tU = 1.0f / dwWidth;
 		float tV = 1.0f / dwHeight;
 
@@ -54,7 +54,7 @@ namespace {
 
 void Tonemap::InitRenderTargets(RenderTarget& mainRenderTarget)
 {
-	// •½‹Ï’l‚ğŒvZ‚·‚éˆ—‚ÌƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ÌƒTƒCƒYB
+	// å¹³å‡å€¤ã‚’è¨ˆç®—ã™ã‚‹å‡¦ç†ã®ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®ã‚µã‚¤ã‚ºã€‚
 	static const int calcAVGRtSize[enNumCalcAvgStep] = {
 		1024,		// enCalcAvg_0
 		256,		// enCalcAvg_1
@@ -63,7 +63,7 @@ void Tonemap::InitRenderTargets(RenderTarget& mainRenderTarget)
 		4,			// enCalcAvg_4
 		1			// enCalcAvg_5
 	};
-	// •½‹Ï‹P“xŒvZ—p‚ÌƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ğì¬B
+	// å¹³å‡è¼åº¦è¨ˆç®—ç”¨ã®ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ä½œæˆã€‚
 	for (int i = 0; i < enNumCalcAvgStep; i++) {
 		m_calcAvgRt[i].Create(
 			calcAVGRtSize[i],
@@ -74,14 +74,14 @@ void Tonemap::InitRenderTargets(RenderTarget& mainRenderTarget)
 			DXGI_FORMAT_UNKNOWN
 		);
 	}
-	// ÅI“I‚Éƒg[ƒ“ƒ}ƒbƒv‚Åg—p‚·‚é•½‹Ï‹P“x‚ğ‘‚«‚ŞƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ğì¬
+	// æœ€çµ‚çš„ã«ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã§ä½¿ç”¨ã™ã‚‹å¹³å‡è¼åº¦ã‚’æ›¸ãè¾¼ã‚€ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ä½œæˆ
 	for (auto& avgRt : m_avgRt) {
 		avgRt.Create(
 			1, 1, 1, 1, DXGI_FORMAT_R16_FLOAT,
 			DXGI_FORMAT_UNKNOWN
 		);
 	}
-	// ƒg[ƒ“ƒ}ƒbƒv—p‚ÌƒXƒvƒ‰ƒCƒg‚ğì¬
+	// ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ç”¨ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’ä½œæˆ
 	m_finalRt.Create(
 		mainRenderTarget.GetWidth(),
 		mainRenderTarget.GetHeight(),
@@ -90,6 +90,11 @@ void Tonemap::InitRenderTargets(RenderTarget& mainRenderTarget)
 		mainRenderTarget.GetColorBufferFormat(),
 		DXGI_FORMAT_UNKNOWN
 	);
+
+	// step-2 1ãƒ•ãƒ¬ãƒ¼ãƒ å‰ã®å¹³å‡è¼åº¦ã‚’è¨˜æ†¶ã™ã‚‹ãŸã‚ã®ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ä½œæˆã€‚
+	
+	// step-3 ç¾åœ¨ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§ä½¿ç”¨ã™ã‚‹å¹³å‡è¼åº¦ã‚’è¨˜æ†¶ã™ã‚‹ãŸã‚ã®ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’ä½œæˆã€‚
+	
 }
 
 void Tonemap::InitSprites(RenderTarget& mainRenderTarget)
@@ -105,42 +110,32 @@ void Tonemap::InitSprites(RenderTarget& mainRenderTarget)
 		initData.m_fxFilePath = "Assets/shader/tonemap.fx";
 
 		if (procStep == enCalcAvgStep_0) {
-			// ©‘R‘Î”‚ğ’ê‚Æ‚·‚é‘Î”‚Ì•½‹Ï‚ğ‚Æ‚éƒXƒvƒ‰ƒCƒg‚ğ‰Šú‰»
+			// è‡ªç„¶å¯¾æ•°ã‚’åº•ã¨ã™ã‚‹å¯¾æ•°ã®å¹³å‡ã‚’ã¨ã‚‹ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–
 			initData.m_psEntryPoinFunc = "PSCalcLuminanceLogAvarage";
 			initData.m_textures[0] = &mainRenderTarget.GetRenderTargetTexture();
 			m_calcAvgSprites[procStep].Init(initData);
 		}
 		else if (procStep == enCalcAvgStep_5) {
-			// expŠÖ”‚ğ—p‚¢‚Ä©‘R‘Î”‚ğ’ê‚Æ‚·‚é‘Î”‚©‚ç•½‹Ï‹P“x‚É•œŒ³‚·‚é‚½‚ß‚ÌƒXƒvƒ‰ƒCƒg‚ğ‰Šú‰»B
+			// expé–¢æ•°ã‚’ç”¨ã„ã¦è‡ªç„¶å¯¾æ•°ã‚’åº•ã¨ã™ã‚‹å¯¾æ•°ã‹ã‚‰å¹³å‡è¼åº¦ã«å¾©å…ƒã™ã‚‹ãŸã‚ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–ã€‚
 			initData.m_psEntryPoinFunc = "PSCalcLuminanceExpAvarage";
 			initData.m_textures[0] = &m_calcAvgRt[procStep - 1].GetRenderTargetTexture();
 			m_calcAvgSprites[procStep].Init(initData);
 		}
 		else {
-			// •½‹Ï‚ğ‚Æ‚éƒXƒvƒ‰ƒCƒg‚ğ‰Šú‰»B
+			// å¹³å‡ã‚’ã¨ã‚‹ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–ã€‚
 			initData.m_psEntryPoinFunc = "PSCalcLuminanceAvarage";
 			initData.m_textures[0] = &m_calcAvgRt[procStep - 1].GetRenderTargetTexture();
 			m_calcAvgSprites[procStep].Init(initData);
 		}
 	}
-	// –¾ˆÃ‡‰
+	
 	{
-		SpriteInitData initData;
-		initData.m_width = mainRenderTarget.GetWidth();
-		initData.m_height = mainRenderTarget.GetHeight();
-		initData.m_colorBufferFormat[0] = m_calcAvgRt[enCalcAvgStep_5].GetColorBufferFormat();
-		initData.m_fxFilePath = "Assets/shader/tonemap.fx";
-		initData.m_psEntryPoinFunc = "PSCalcAdaptedLuminance";
-		initData.m_expandConstantBuffer = &m_tonemapParam;
-		initData.m_expandConstantBufferSize = sizeof(m_tonemapParam);
-		initData.m_textures[0] = &m_calcAvgRt[enCalcAvgStep_5].GetRenderTargetTexture();
-		initData.m_textures[1] = &m_avgRt[0].GetRenderTargetTexture();
-		initData.m_textures[2] = &m_avgRt[1].GetRenderTargetTexture();
+		// step-4 è¤‡æ•°ãƒ•ãƒ¬ãƒ¼ãƒ ã®å¹³å‡è¼åº¦è¨ˆç®—ç”¨ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–ã™ã‚‹ã€‚
 
-		m_calcAdapteredLuminanceSprite.Init(initData);
 	}
-	// •½‹Ï‹P“x‚ğg‚Á‚Äƒg[ƒ“ƒ}ƒbƒv‚ğs‚¤‚½‚ß‚ÌƒXƒvƒ‰ƒCƒg‚ğ‰Šú‰»B
+	
 	{
+		// å¹³å‡è¼åº¦ã‚’ä½¿ã£ã¦ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã‚’è¡Œã†ãŸã‚ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–ã€‚
 		SpriteInitData initData;
 		initData.m_width = mainRenderTarget.GetWidth();
 		initData.m_height = mainRenderTarget.GetHeight();
@@ -150,13 +145,14 @@ void Tonemap::InitSprites(RenderTarget& mainRenderTarget)
 		initData.m_expandConstantBuffer = &m_tonemapParam;
 		initData.m_expandConstantBufferSize = sizeof(m_tonemapParam);
 		initData.m_textures[0] = &mainRenderTarget.GetRenderTargetTexture();
-		initData.m_textures[1] = &m_avgRt[0].GetRenderTargetTexture();
-		initData.m_textures[2] = &m_avgRt[1].GetRenderTargetTexture();
-
+		// ã€æ³¨ç›®ã€‘ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã§ä½¿ç”¨ã™ã‚‹å¹³å‡è¼åº¦ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’æ¸¡ã™ã€‚
+		initData.m_textures[1] = &m_luminanceAvgInTonemapRt.GetRenderTargetTexture();
+		
 		m_finalSprite.Init(initData);
 	}
-	// ƒg[ƒ“ƒ}ƒbƒv‚³‚ê‚½ŠG‚ğƒƒCƒ“ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ÉƒRƒs[‚·‚é‚½‚ß‚ÌƒXƒvƒ‰ƒCƒg‚ğ‰Šú‰»B
+	
 	{
+		// ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã•ã‚ŒãŸçµµã‚’ãƒ¡ã‚¤ãƒ³ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã«ã‚³ãƒ”ãƒ¼ã™ã‚‹ãŸã‚ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–ã€‚
 		SpriteInitData initData;
 		initData.m_width = mainRenderTarget.GetWidth();
 		initData.m_height = mainRenderTarget.GetHeight();
@@ -165,14 +161,25 @@ void Tonemap::InitSprites(RenderTarget& mainRenderTarget)
 		initData.m_textures[0] = &m_finalRt.GetRenderTargetTexture();
 		m_copyMainRtSprite.Init(initData);
 	}
+
+	{
+		// ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã§ä½¿ç”¨ã—ãŸå¹³å‡è¼åº¦ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ãŸã‚ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–ã€‚
+		SpriteInitData initData;
+		initData.m_width = m_luminanceAvgInTonemapRt.GetWidth();
+		initData.m_height = m_luminanceAvgInTonemapRt.GetHeight();
+		initData.m_colorBufferFormat[0] = m_luminanceAvgInTonemapRt.GetColorBufferFormat();
+		initData.m_fxFilePath = "Assets/shader/preset/sprite.fx";
+		initData.m_textures[0] = &m_luminanceAvgInTonemapRt.GetRenderTargetTexture();
+		m_copyLuminanceAvgInTonemapSprite.Init(initData);
+	}
 }
 
-void Tonemap::ExecuteCalcAvg(RenderContext& rc)
+void Tonemap::ExecuteCalcAvgInCurrentScene(RenderContext& rc)
 {
 	for (int procStep = 0; procStep < enNumCalcAvgStep; procStep++) {
-		// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚Æ‚µ‚Ä—˜—p‚Å‚«‚é‚Ü‚Å‘Ò‚Â
+		// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¨ã—ã¦åˆ©ç”¨ã§ãã‚‹ã¾ã§å¾…ã¤
 		rc.WaitUntilToPossibleSetRenderTarget(m_calcAvgRt[procStep]);
-		// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ğİ’è
+		// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’è¨­å®š
 		rc.SetRenderTargetAndViewport(m_calcAvgRt[procStep]);
 		rc.ClearRenderTargetView(m_calcAvgRt[procStep]);
 		GetSampleOffsets4x4(
@@ -182,69 +189,67 @@ void Tonemap::ExecuteCalcAvg(RenderContext& rc)
 		);
 		m_calcAvgSprites[procStep].Draw(rc);
 
-		// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚Ö‚Ì‘‚«‚İI—¹‘Ò‚¿
+		// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¸ã®æ›¸ãè¾¼ã¿çµ‚äº†å¾…ã¡
 		rc.WaitUntilFinishDrawingToRenderTarget(m_calcAvgRt[procStep]);
 	}
 }
+void Tonemap::ExecuteCalcAvgInTonemap(RenderContext& rc)
+{
+	// step-5 ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã§ä½¿ç”¨ã™ã‚‹å¹³å‡è¼åº¦ã‚’è¨ˆç®—ã™ã‚‹ã€‚
 
+}
 void Tonemap::ExecuteTonemap(RenderContext& rc)
 {
-	// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ğİ’è
+	// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’è¨­å®š
 	rc.WaitUntilToPossibleSetRenderTarget(m_finalRt);
 	rc.SetRenderTargetAndViewport(m_finalRt);
-	// ÅI‡¬B
+	// æœ€çµ‚åˆæˆã€‚
 	m_finalSprite.Draw(rc);
-	// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚Ö‚Ì‘‚«‚İI—¹‘Ò‚¿
+	// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¸ã®æ›¸ãè¾¼ã¿çµ‚äº†å¾…ã¡
 	rc.WaitUntilFinishDrawingToRenderTarget(m_finalRt);
 }
 
 void Tonemap::ExecuteCopyResultToMainRenderTarget(RenderContext& rc, RenderTarget& mainRenderTarget)
 {
-	// ÅI‡¬‚³‚ê‚½ŠG‚ğƒƒCƒ“ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ÉƒRƒs[‚·‚éB
+	// æœ€çµ‚åˆæˆã•ã‚ŒãŸçµµã‚’ãƒ¡ã‚¤ãƒ³ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã«ã‚³ãƒ”ãƒ¼ã™ã‚‹ã€‚
 	rc.WaitUntilToPossibleSetRenderTarget(mainRenderTarget);
-	// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ğİ’è
+	// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’è¨­å®š
 	rc.SetRenderTargetAndViewport(mainRenderTarget);
 	m_copyMainRtSprite.Draw(rc);
-	// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚Ö‚Ì‘‚«‚İI—¹‘Ò‚¿
+	// ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã¸ã®æ›¸ãè¾¼ã¿çµ‚äº†å¾…ã¡
 	rc.WaitUntilFinishDrawingToRenderTarget(mainRenderTarget);
 }
-void Tonemap::ExecuteLuminanceAdapter(RenderContext& rc)
+
+void Tonemap::ExecuteCopyLuminanceAvgInTonemap(RenderContext& rc)
 {
-	m_tonemapParam.currentAvgTexNo = m_currentAvgRt;
-
-	rc.WaitUntilToPossibleSetRenderTarget(m_avgRt[m_currentAvgRt]);
-	// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ğİ’è
-	rc.SetRenderTargetAndViewport(m_avgRt[m_currentAvgRt]);
-	m_calcAdapteredLuminanceSprite.Draw(rc);
-	// ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚Ö‚Ì‘‚«‚İI—¹‘Ò‚¿
-	rc.WaitUntilFinishDrawingToRenderTarget(m_avgRt[m_currentAvgRt]);
+	// step-6 ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã§ä½¿ç”¨ã—ãŸå¹³å‡è¼åº¦ã‚’ä¿å­˜ã™ã‚‹ã€‚
+	
 }
-
 void Tonemap::Init(RenderTarget& mainRenderTarget)
 {
-	m_tonemapParam.midddleGray = 0.4f;
+	m_tonemapParam.midddleGray = 0.18f;
 	m_tonemapParam.deltaTime = 1.0f / 60.0f;
 
-	// 1. ŠeíƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ğ‰Šú‰»‚·‚éB
+	// 1. å„ç¨®ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’åˆæœŸåŒ–ã™ã‚‹ã€‚
 	InitRenderTargets(mainRenderTarget);
 
-	// 2. ŠeíƒXƒvƒ‰ƒCƒg‚ğ‰Šú‰»‚·‚éB
+	// 2. å„ç¨®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’åˆæœŸåŒ–ã™ã‚‹ã€‚
 	InitSprites(mainRenderTarget);
 }
 void Tonemap::Execute(RenderContext& rc, RenderTarget& mainRenderTarget)
 {
-	// 1. ƒV[ƒ“‚Ì•½‹Ï‹P“xŒvZB
-	ExecuteCalcAvg( rc);
+	// 1. ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã®å¹³å‡è¼åº¦è¨ˆç®—ã€‚
+	ExecuteCalcAvgInCurrentScene( rc);
 
-	// 2. –¾ˆÃ‡‰B
-	ExecuteLuminanceAdapter(rc);
+	// 2. ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã§ä½¿ç”¨ã™ã‚‹å¹³å‡è¼åº¦ã‚’è¨ˆç®—ã™ã‚‹ã€‚
+	ExecuteCalcAvgInTonemap(rc);
 
-	// 3. ƒV[ƒ“‚Ì•½‹Ï‹P“x‚ğg‚Á‚Äƒg[ƒ“ƒ}ƒbƒvB
+	// 3. ã‚·ãƒ¼ãƒ³ã®å¹³å‡è¼åº¦ã‚’ä½¿ã£ã¦ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã€‚
 	ExecuteTonemap(rc);
 	
-	// 4. ƒg[ƒ“ƒ}ƒbƒv‚µ‚½Œ‹‰Ê‚Ì‰æ‘œ‚ğƒƒCƒ“ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ÉƒRƒs[‚·‚éB
+	// 4. ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã—ãŸçµæœã®ç”»åƒã‚’ãƒ¡ã‚¤ãƒ³ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã«ã‚³ãƒ”ãƒ¼ã™ã‚‹ã€‚
 	ExecuteCopyResultToMainRenderTarget(rc, mainRenderTarget);
 
-	// 5. •½‹Ï’l‚ğŒvZ‚·‚éƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚Ì”Ô†‚ğ“ü‚ê‘Ö‚¦‚éB
-	m_currentAvgRt = 1 ^ m_currentAvgRt;
+	// 5. ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ—ã§ä½¿ç”¨ã—ãŸå¹³å‡è¼åº¦ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ã€‚
+	ExecuteCopyLuminanceAvgInTonemap(rc);
 }

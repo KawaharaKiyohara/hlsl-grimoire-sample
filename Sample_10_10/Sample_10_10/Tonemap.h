@@ -12,14 +12,14 @@ public:
 	void Execute(RenderContext& rc, RenderTarget& mainRenderTarget);
 private:
 	/// <summary>
-	/// 平均輝度を計算する。
+	/// 現在のシーンの平均輝度を計算する。
 	/// </summary>
-	void ExecuteCalcAvg(RenderContext& rc);
+	void ExecuteCalcAvgInCurrentScene(RenderContext& rc);
 	/// <summary>
-	/// 明暗順応
+	/// トーンマップで使用する平均輝度を計算する。
 	/// </summary>
 	/// <param name="rc"></param>
-	void ExecuteLuminanceAdapter(RenderContext& rc);
+	void ExecuteCalcAvgInTonemap(RenderContext& rc);
 	/// <summary>
 	/// 平均輝度を使ってトーンマップを実行する。
 	/// </summary>
@@ -31,6 +31,11 @@ private:
 	/// <param name="mainRenderTarget"></param>
 	void ExecuteCopyResultToMainRenderTarget(RenderContext& rc, RenderTarget& mainRenderTarget);
 	/// <summary>
+	/// トーンマップで使用した平均輝度テクスチャをコピー。
+	/// </summary>
+	/// <param name="rc"></param>
+	void ExecuteCopyLuminanceAvgInTonemap(RenderContext& rc);
+	/// <summary>
 	/// 各種レンダリングターゲットを初期化。
 	/// </summary>
 	void InitRenderTargets(RenderTarget& mainRenderTarget);
@@ -41,6 +46,7 @@ private:
 	void InitSprites(RenderTarget& mainRenderTarget);
 private:
 	static const int NUM_SAMPLES = 16;	// 平均輝度を計算する際にサンプリングするテクセルの数。
+
 	struct STonemapParam {
 		float deltaTime;
 		float midddleGray;
@@ -56,15 +62,17 @@ private:
 		enCalcAvgStep_5,	// 平均輝度を計算。16テクセルサンプリングしてから対数の値から輝度に復元する。
 		enNumCalcAvgStep,	// 処理のステップ数。
 	};
-	RenderTarget m_calcAvgRt[enNumCalcAvgStep];		// 平均輝度計算用のレンダリングターゲット。
+	
 	RenderTarget m_avgRt[2];						// 平均輝度が格納されるレンダリングターゲット。
 	RenderTarget m_finalRt;							// 最終合成レンダリングターゲット。
-	int m_currentAvgRt;								// 現在のフレームで使用する平均値が書き込まれているレンダリングターゲット。
 	Sprite m_calcAvgSprites[enNumCalcAvgStep];		// 平均輝度計算用のスプライト。
 	Sprite m_finalSprite;							// 最終合成用のスプライト。
 	Sprite m_copyMainRtSprite;						// メインレンダリングターゲットに描画するためのスプライト。
-	Sprite m_calcAdapteredLuminanceSprite;			// 明暗順応を行うためのスプライト。
+	
 	Vector4 m_sampleUVOffsetArray[NUM_SAMPLES];		// 16テクセルサンプリングする際のUVオフセットのテーブル。
 	STonemapParam m_tonemapParam;
+	RenderTarget m_calcAvgRt[enNumCalcAvgStep];			// 平均輝度計算用のレンダリングターゲット。
+	// step-1 各種メンバ変数を追加する。
+	
 };
 

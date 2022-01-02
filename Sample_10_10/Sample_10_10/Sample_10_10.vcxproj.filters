@@ -36,6 +36,9 @@
     <Filter Include="ソース ファイル\sub">
       <UniqueIdentifier>{56b6e457-24d1-44a7-8a28-01a9d7cf34b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\sub">
+      <UniqueIdentifier>{7cd4f0ae-951c-41bd-97f0-428f376cc33d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -173,14 +176,14 @@
     <ClCompile Include="sub.cpp">
       <Filter>ソース ファイル\sub</Filter>
     </ClCompile>
-    <ClCompile Include="bloom.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="ShadowMap.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Tonemap.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="bloom.cpp">
+      <Filter>ソース ファイル\sub</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowMap.cpp">
+      <Filter>ソース ファイル\sub</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -331,14 +334,14 @@
     <ClInclude Include="sub.h">
       <Filter>ソース ファイル\sub</Filter>
     </ClInclude>
-    <ClInclude Include="bloom.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="ShadowMap.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Tonemap.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="bloom.h">
+      <Filter>ヘッダー ファイル\sub</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMap.h">
+      <Filter>ヘッダー ファイル\sub</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
