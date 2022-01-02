@@ -104,22 +104,7 @@ float3 Hsv2Rgb(float3 c)
 float4 PSCalcLuminanceLogAvarage(PSInput In) : SV_Target0
 {
     // step-10 ‹P“x‚Ì‘Î”•½‹Ï‚ğ‹‚ß‚éB
-    float  fLogLumSum = 0.0f;  // ‹P“x‚Ì©‘R‘Î”‚Ì‡Œv‚ğ‹L‰¯‚·‚é•Ï”B
-    
-    // 9ƒeƒNƒZƒ‹ƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
-    for(int i = 0; i < 9; i++)
-    {
-        // ƒV[ƒ“‚ÌƒJƒ‰[‚ğƒTƒ“ƒvƒŠƒ“ƒOB
-        float3 color = max( sceneTexture.Sample(Sampler, In.uv+g_avSampleOffsets[i].xy), 0.001f );
-        // RGB‚©‹P“x‚ğ‹‚ß‚éB
-        float v = Rgb2V(color);
-        // ƒlƒCƒsƒA”‚ğ’ê‚Æ‚·‚é‹P“x‚Ì©‘R‘Î”‚ğ‰ÁZ‚·‚éB
-        fLogLumSum += log(v);
-    }
-    // 9‚ÅœZ‚µ‚Ä•½‹Ï‚ğ‹‚ß‚éB
-    fLogLumSum /= 9;
 
-    return float4(fLogLumSum, fLogLumSum, fLogLumSum, 1.0f);
 }
 /*!
  * @brief 16ƒeƒNƒZƒ‹‚Ì•½‹Ï‹P“xŒvZ‚ğ‹‚ß‚éƒsƒNƒZƒ‹ƒVƒF[ƒ_[
@@ -130,16 +115,7 @@ float4 PSCalcLuminanceLogAvarage(PSInput In) : SV_Target0
 float4 PSCalcLuminanceAvarage(PSInput In) : SV_Target0
 {
     // step-11 ‹P“x‚Ì‘Î”•½‹Ï‚Ì•½‹Ï‚ğ‹‚ß‚éB
-	float fResampleSum = 0.0f; 
-    
-    // 16ƒeƒNƒZƒ‹ƒTƒ“ƒvƒŠƒ“ƒO‚µ‚Ä•½‹Ï‚ğ‹‚ß‚éB
-    for(int iSample = 0; iSample < 16; iSample++)
-    {
-        fResampleSum += sceneTexture.Sample(Sampler, In.uv+g_avSampleOffsets[iSample].xy);
-    }
-    fResampleSum /= 16;
 
-    return float4(fResampleSum, fResampleSum, fResampleSum, 1.0f);
 }
 
 /*!
@@ -151,17 +127,7 @@ float4 PSCalcLuminanceAvarage(PSInput In) : SV_Target0
 float4 PSCalcLuminanceExpAvarage( PSInput In ) : SV_Target0
 {
     // step-12 ‘Î”•½‹Ï‚ÌŒvZ‚Æ•œŒ³B
-	float fResampleSum = 0.0f;
-    
-    for(int iSample = 0; iSample < 16; iSample++)
-    {
-        fResampleSum += sceneTexture.Sample(Sampler, In.uv+g_avSampleOffsets[iSample]);
-    }
-    
-    // exp()‚ğ—˜—p‚µ‚Ä•œŒ³‚·‚éB
-    fResampleSum = exp(fResampleSum/16);
-    
-    return float4(fResampleSum, fResampleSum, fResampleSum, 1.0f);
+
 }
 
 ////////////////////////////////////////////////////////
@@ -176,29 +142,14 @@ Texture2D<float4> lumAvgTexture : register(t1);		        //•½‹Ï‹P“x‚ª‹L‰¯‚³‚ê‚Ä‚
 float4 PSFinal( PSInput In) : SV_Target0
 {
     // step-13 ƒV[ƒ“‚ÌƒJƒ‰[‚©‚ç‹P“x‚ğŒvZ‚·‚éB
-    // ƒV[ƒ“‚ÌƒJƒ‰[‚ğƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
-	float4 sceneColor = sceneTexture.Sample(Sampler, In.uv );
-    // ƒV[ƒ“‚ÌƒJƒ‰[‚ğRGBŒn‚©‚çHSVŒn‚É•ÏŠ·‚·‚éB
-    float3 hsv = Rgb2Hsv(sceneColor);
 
     // step-14 •½‹Ï‹P“x‚ğg‚Á‚ÄA‚±‚ÌƒsƒNƒZƒ‹‚Ì‹P“x‚ğƒXƒP[ƒ‹ƒ_ƒEƒ“‚·‚éB
-    // •½‹Ï‹P“x‚ğƒTƒ“ƒvƒŠƒ“ƒO‚·‚éB
-	float avgLum = lumAvgTexture.Sample(Sampler, float2( 0.5f, 0.5f)).r;
-    // •½‹Ï‹P“x‚ğ0.18‚É‚·‚é‚½‚ß‚ÌƒXƒP[ƒ‹’l‚ğ‹‚ß‚éB
-    float k = ( 0.18f / ( max(avgLum, 0.001f )));
-    // ƒXƒP[ƒ‹’l‚ğg‚Á‚ÄA‹P“x‚ğƒXƒP[ƒ‹ƒ_ƒEƒ“B
-    hsv.z *= k;
 
     // step-15 ‹P“x‚Ì•Ï‰»‚ğüŒ`‚©‚ç”ñüŒ`‚É‚·‚éB
-    // ACESƒg[ƒ“ƒ}ƒbƒp[‚ğg‚Á‚Ä‹P“x‚Ì•Ï‰»‚ğ”ñüŒ`‚É‚·‚éB
-    hsv.z = ACESFilm(hsv.z);
 
     // step-16 RGB‚É–ß‚·B
-    // HSVŒn‚©‚çRGBŒn‚É–ß‚·B
-    sceneColor.xyz = Hsv2Rgb(hsv);
     
     // step-17 ƒKƒ“ƒ}•â³B
-    sceneColor.xyz = pow( max( sceneColor.xyz, 0.0001f), 1.0f / 2.2f );
     
 	return sceneColor;
 }
